@@ -4,12 +4,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.navigation.Navigation
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.frkn.notesapp.R
 import com.frkn.notesapp.databinding.NoteItemLayoutBinding
+import com.frkn.notesapp.fragments.NoteFragmentDirections
 import com.frkn.notesapp.model.Note
+import com.frkn.notesapp.utils.hideKeybord
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textview.MaterialTextView
 import io.noties.markwon.AbstractMarkwonPlugin
@@ -36,7 +40,7 @@ class RecyclerNoteAdapter: ListAdapter<Note,RecyclerNoteAdapter.NotesViewHolder>
                     super.configureVisitor(builder)
                     builder.on(
                         SoftLineBreak::class.java
-                    ){visitor, _ ,-> visitor.forceNewLine()}
+                    ){visitor, _ -> visitor.forceNewLine()}
                 }
             })
             .build()
@@ -51,20 +55,28 @@ class RecyclerNoteAdapter: ListAdapter<Note,RecyclerNoteAdapter.NotesViewHolder>
     override fun onBindViewHolder(holder: NotesViewHolder, position: Int) {
         getItem(position).let { note ->
             holder.apply {
+                parent.transitionName="recyclerView_${note.id}"
                 title.text = note.title
                 markWon.setMarkdown(content,note.content)
                 date.text = note.date
                 parent.setCardBackgroundColor(note.color)
 
                 itemView.setOnClickListener {
-
+                    val action = NoteFragmentDirections.actionNoteFragmentToSaveOrUpdateFragment().setNote(note)
+                    val extras = FragmentNavigatorExtras(parent to "recyclerView_${note.id}")
+                    it.hideKeybord()
+                    Navigation.findNavController(it).navigate(action,extras)
                 }
 
                 content.setOnClickListener {
+                    val action = NoteFragmentDirections.actionNoteFragmentToSaveOrUpdateFragment().setNote(note)
+                    val extras = FragmentNavigatorExtras(parent to "recyclerView_${note.id}")
+                    it.hideKeybord()
+                    Navigation.findNavController(it).navigate(action,extras)
+                }
 
                 }
             }
 
         }
     }
-}

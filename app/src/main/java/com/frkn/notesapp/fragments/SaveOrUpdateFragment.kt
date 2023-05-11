@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.os.bundleOf
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.navigation.NavController
@@ -27,6 +28,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.transition.MaterialContainerTransform
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.*
 
 class SaveOrUpdateFragment : Fragment(R.layout.fragment_save_or_update) {
@@ -62,12 +65,16 @@ class SaveOrUpdateFragment : Fragment(R.layout.fragment_save_or_update) {
         navController=Navigation.findNavController(view)
         val activity = activity as MainActivity
 
+        ViewCompat.setTransitionName(
+            contentBinding.noteContentFragmentParent,
+            "recyclerView_${args.note?.id}"
+        )
+
         contentBinding.backButton.setOnClickListener {
             requireView().hideKeybord()
             navController.popBackStack()
         }
 
-        contentBinding.lastEdited.text = getString(R.string.edited_on,SimpleDateFormat.getInstance().format(Date()))
 
         contentBinding.saveNote.setOnClickListener {
             saveNote()
@@ -125,6 +132,35 @@ class SaveOrUpdateFragment : Fragment(R.layout.fragment_save_or_update) {
 
         }
 
+        setUpNote()
+
+    }
+
+    private fun setUpNote() {
+        val note = args.note
+        val title = contentBinding.etTitle
+        val content = contentBinding.etNoteContent
+        val lastEdited = contentBinding.lastEdited
+
+        if (note == null) {
+            contentBinding.lastEdited.text = getString(R.string.edited_on,SimpleDateFormat.getInstance().format(Date()))
+        }
+
+        if (note != null) {
+            title.setText(note.title)
+            content.renderMD(note.content)
+            lastEdited.text=getString(R.string.edited_on,note.date)
+            color = note.color
+            contentBinding.apply {
+                job.launch {
+                    delay(10)
+                    noteContentFragmentParent.setBackgroundColor(color)
+                }
+                toolBarFragmentNoteContent.setBackgroundColor(color)
+                bottomBar.setBackgroundColor(color)
+            }
+            activity?.window?.statusBarColor=note.color
+        }
     }
 
     private fun saveNote() {
@@ -154,11 +190,25 @@ class SaveOrUpdateFragment : Fragment(R.layout.fragment_save_or_update) {
                     navController.navigate(SaveOrUpdateFragmentDirections.actionSaveOrUpdateFragmentToNoteFragment())
                 }
                 else -> { // update note
+                    updateNote()
+                    navController.popBackStack()
 
                 }
             }
         }
     }
 
-
+    private fun updateNote() {
+        if (note!=null){
+            noteActivityViewModel.updateNote(
+                Note(
+                    note!!.id,
+                    contentBinding.etTitle.text.toString(),
+                    contentBinding.etNoteContent.getMD(),
+                    currentDate,
+                    color
+                )
+            )
+        }
+    }
 }
