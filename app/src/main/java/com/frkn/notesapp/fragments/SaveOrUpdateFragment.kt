@@ -9,7 +9,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.os.bundleOf
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.setFragmentResult
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.fragment.navArgs
@@ -33,6 +35,7 @@ class SaveOrUpdateFragment : Fragment(R.layout.fragment_save_or_update) {
     private lateinit var contentBinding : FragmentSaveOrUpdateBinding
     private var note: Note? = null
     private var color = -1
+    private lateinit var result : String
     private  val noteActivityViewModel : NoteActivityViewModel by activityViewModels()
     private val currentDate = SimpleDateFormat.getInstance().format(Date())
     private val job = CoroutineScope(Dispatchers.Main)
@@ -64,19 +67,22 @@ class SaveOrUpdateFragment : Fragment(R.layout.fragment_save_or_update) {
             navController.popBackStack()
         }
 
+        contentBinding.lastEdited.text = getString(R.string.edited_on,SimpleDateFormat.getInstance().format(Date()))
+
         contentBinding.saveNote.setOnClickListener {
             saveNote()
 
-            try {
-                contentBinding.etNoteContent.setOnFocusChangeListener { _, hasFocus ->
-                    if (hasFocus){
-                        contentBinding.bottomBar.visibility = View.VISIBLE
-                        contentBinding.etNoteContent.setStylesBar(contentBinding.styleBar)
-                    }else contentBinding.bottomBar.visibility = View.GONE
-                }
-            } catch (e: Throwable){
-                Log.d("TAG",e.stackTraceToString())
+        }
+
+        try {
+            contentBinding.etNoteContent.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus){
+                    contentBinding.bottomBar.visibility = View.VISIBLE
+                    contentBinding.etNoteContent.setStylesBar(contentBinding.styleBar)
+                }else contentBinding.bottomBar.visibility = View.GONE
             }
+        } catch (e: Throwable){
+            Log.d("TAG",e.stackTraceToString())
         }
 
 
@@ -138,6 +144,12 @@ class SaveOrUpdateFragment : Fragment(R.layout.fragment_save_or_update) {
                             currentDate,
                             color
                         )
+                    )
+
+                    result = "Note Saved"
+                    setFragmentResult(
+                        "key",
+                        bundleOf("bundleKey" to result)
                     )
                     navController.navigate(SaveOrUpdateFragmentDirections.actionSaveOrUpdateFragmentToNoteFragment())
                 }
