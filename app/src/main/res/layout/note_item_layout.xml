@@ -12,7 +12,7 @@
         android:layout_height="match_parent"
         android:layout_margin="5dp">
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
@@ -91,7 +91,7 @@
             </RelativeLayout>
 
 
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
 
     </RelativeLayout>

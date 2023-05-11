@@ -13,8 +13,11 @@ import android.view.WindowManager
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.frkn.notesapp.R
 import com.frkn.notesapp.activities.MainActivity
+import com.frkn.notesapp.adapters.RecyclerNoteAdapter
 import com.frkn.notesapp.databinding.FragmentNoteBinding
 import com.frkn.notesapp.utils.hideKeybord
 import com.frkn.notesapp.viewModel.NoteActivityViewModel
@@ -23,11 +26,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 class NoteFragment : Fragment(R.layout.fragment_note) {
 
     private lateinit var noteBinding: FragmentNoteBinding
     private val noteActivityViewModel : NoteActivityViewModel by  activityViewModels()
+    private lateinit var  rvAdapter : RecyclerNoteAdapter
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -110,9 +115,10 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     }
 
     private fun observerDataChanges() {
-
-
-
+        noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner){ list ->
+         noteBinding.noData.isVisible = list.isEmpty()
+            rvAdapter.submitList(list)
+        }
     }
 
     private fun recyclerViewDisplay() {
@@ -120,15 +126,24 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         when (resources.configuration.orientation) {
             Configuration.ORIENTATION_PORTRAIT -> setUpRecyclerView(2)
             Configuration.ORIENTATION_LANDSCAPE -> setUpRecyclerView(3)
-
         }
-
     }
 
-    // 36,41dk
-    private fun setUpRecyclerView(i: Int) {
+    private fun setUpRecyclerView(spanCount: Int) {
 
-
-
+        noteBinding.recyclerNote.apply {
+            layoutManager = StaggeredGridLayoutManager(spanCount,StaggeredGridLayoutManager.VERTICAL)
+            setHasFixedSize(true)
+            rvAdapter = RecyclerNoteAdapter()
+            rvAdapter.stateRestorationPolicy =
+                RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+            adapter = rvAdapter
+            postponeEnterTransition(300L,TimeUnit.MILLISECONDS)
+            viewTreeObserver.addOnPreDrawListener {
+                startPostponedEnterTransition()
+                true
+            }
+        }
+        observerDataChanges()
     }
 }

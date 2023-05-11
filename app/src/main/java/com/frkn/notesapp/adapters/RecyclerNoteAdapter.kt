@@ -27,7 +27,7 @@ class RecyclerNoteAdapter: ListAdapter<Note,RecyclerNoteAdapter.NotesViewHolder>
         val title : MaterialTextView = contentBinding.noteItemTitle
         val content : TextView = contentBinding.noteContentItem
         val date : MaterialTextView = contentBinding.noteDate
-        val parent : MaterialCardView = contentBinding.noteItemLayoutParent as MaterialCardView
+        val parent : MaterialCardView = contentBinding.noteItemLayoutParent
         val markWon = Markwon.builder(itemView.context)
             .usePlugin(StrikethroughPlugin.create())
             .usePlugin(TaskListPlugin.create(itemView.context))
@@ -44,8 +44,7 @@ class RecyclerNoteAdapter: ListAdapter<Note,RecyclerNoteAdapter.NotesViewHolder>
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotesViewHolder {
         return NotesViewHolder(
-            LayoutInflater.from(parent.context)
-                .inflate(R.layout.note_item_layout,parent,false)
+            LayoutInflater.from(parent.context).inflate(R.layout.note_item_layout,parent,false)
         )
     }
 
